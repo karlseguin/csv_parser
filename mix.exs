@@ -27,7 +27,8 @@ defmodule CsvParser.MixProject do
 	defp deps do
 		[
 			{:csv, "~> 2.3.0"},
-			{:erlsom, "~> 1.5.0"}
+			{:erlsom, "~> 1.5.0"},
+			{:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
 		]
 	end
 end
