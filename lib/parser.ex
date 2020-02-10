@@ -6,12 +6,10 @@ defmodule CsvParser do
 	so that errors in your files can be handled explicitly.
 
 	opts:
-		type: :csv | :xlsx  defaults to nil, which will auto-detect
+		type: :csv | :xlsx - defaults to nil, which will auto-detect
+		map: bool - whether you want rows as a list or map (where the keys are taken from the first row)
 		sheet_index: index (index) of the sheet to parse. Default to nil,
 		             which will take the first sheet, only applicable to xlsx
-
-	For CSV, opts is passed as-is to the CSV library, so any of those options are
-	valid. See: https://hexdocs.pm/csv/CSV.html#decode/2-options
 	"""
 	def new(path, opts \\ []) do
 		opts = Keyword.put_new(opts, :validate_row_length, false)

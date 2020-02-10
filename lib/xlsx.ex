@@ -1,9 +1,12 @@
 defmodule CsvParser.Xlsx do
 	alias __MODULE__
+	require Record
 
 	@moduledoc false
 
 	defstruct [:sheet, :strings, :opts]
+
+  Record.defrecord(:state, acc: nil, row: nil, type: nil, value: false, headers: nil)
 
 	def new(path, opts) do
 		with {:ok, xlsx} <- :zip.unzip(String.to_charlist(path), [:memory]),
@@ -22,14 +25,11 @@ defmodule CsvParser.Xlsx do
 	end
 
 	defp extract_sheet(xlsx, opts) do
-		suffix = case opts[:sheet_index] do
-			nil -> nil
-			index -> String.to_charlist("#{index}.xml")
-		end
+		suffix = String.to_charlist("#{opts[:sheet_index] || 1}.xml")
 
 		Enum.find_value(xlsx, fn
 			{[?x, ?l, ?/, ?w, ?o, ?r, ?k, ?s, ?h, ?e, ?e, ?t, ?s, ?/, ?s, ?h, ?e, ?e, ?t | rest], data} ->
-				case suffix == nil || suffix == rest do
+				case suffix == rest do
 					true -> {:ok, data}
 					false -> nil
 				end
@@ -64,29 +64,45 @@ defmodule CsvParser.Xlsx do
 
 	def reduce(xlsx, acc, fun) do
 		strings = xlsx.strings
-		{:ok, {acc, _, _, _}, _} =
-		:erlsom.parse_sax(xlsx.sheet, {acc, nil, nil, false}, fn event, {acc, row, type, val?} ->
+		as_map? = xlsx.opts[:map] || false
+
+		{:ok, s, _} = :erlsom.parse_sax(xlsx.sheet, state(acc: acc), fn event, s ->
 			case simplify(event) do
-				{:startElement, 'row', _} -> {acc, [], nil, false}
-				{:startElement, 'c', attr} -> {acc, row, get_attribute(attr, 't'), false}
-				{:startElement, 'v', _} -> {acc, row, type, true}
+				{:startElement, 'row', _} -> state(s, row: [], type: nil, value: false)
+				{:startElement, 'c', attr} -> state(s, type: get_attribute(attr, 't'), value: false)
+				{:startElement, 'v', _} -> state(s, value: true)
 				{:characters, value} ->
-					case row != nil && type != nil && val? do
-						true ->
+					type = state(s, :type)
+					case state(s, :row) == nil || type == nil|| state(s, :value) == false do
+						true -> s  # a value that doesn't seem to belong to a row -> col -> value
+						false ->
 							value = case type do
 								's' -> elem(strings, elem(:string.to_integer(value), 0))
 								_ -> String.Chars.to_string(value)
 							end
-							{acc, [value | row], true, true}
-						false -> {acc, row, type, val?}
+							state(s, row: [value | state(s, :row)])
 					end
-				{:endElement, 'v'} -> {acc, row, type, false}
-				{:endElement, 'c'} -> {acc, row, nil, false}
-				{:endElement, 'row'} -> {fun.({:ok, Enum.reverse(row)}, acc), nil, nil, false}
-				_ -> {acc, row, type, val?}
+				{:endElement, 'v'} -> state(s, value: false)
+				{:endElement, 'c'} -> state(s, type: nil, value: false)
+				{:endElement, 'row'} ->
+					row = Enum.reverse(state(s, :row))
+					acc = case as_map? do
+						true ->
+							case state(s, :headers) do
+								nil -> state(s, headers: row)
+								headers ->
+									row = Map.new(Enum.zip(headers, row))
+									acc = fun.({:ok, row}, state(s, :acc))
+									state(s, acc: acc, row: nil, type: nil, value: false)
+							end
+						false ->
+							acc = fun.({:ok, row}, state(s, :acc))
+							state(s, acc: acc, row: nil, type: nil, value: false)
+					end
+				_ -> s
 			end
 		end)
-		acc
+		state(s, :acc)
 	end
 
 	defp simplify({:startElement, _url, name, _prefix, attributes}), do: {:startElement, name, attributes}

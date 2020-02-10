@@ -43,3 +43,6 @@ end
 Note that each `row` will be a tuple of either `{:ok, [...]}` or `{:error, an error}`
 
 Currently, with default options, you'll only ever get `{:ok, [...]}`, but its exposed this way for future compatibility.
+
+# Header / Maps
+You can pass `map: true` to get rows as maps rather than lists. The first row will be used as the keys.

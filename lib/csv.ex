@@ -7,6 +7,11 @@ defmodule CsvParser.Csv do
 
 	def new(path, opts) do
 		opts = Keyword.put_new(opts, :strip_fields, true)
+		opts = case opts[:map] do
+			true -> Keyword.put(opts, :headers, true)
+			_ -> opts
+		end
+
 		{:ok, %Csv{path: path, opts: opts}}
 	end
 
