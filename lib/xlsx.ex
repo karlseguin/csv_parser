@@ -86,7 +86,7 @@ defmodule CsvParser.Xlsx do
 				{:endElement, 'c'} -> state(s, type: nil, value: false)
 				{:endElement, 'row'} ->
 					row = Enum.reverse(state(s, :row))
-					acc = case as_map? do
+					case as_map? do
 						true ->
 							case state(s, :headers) do
 								nil -> state(s, headers: row)
