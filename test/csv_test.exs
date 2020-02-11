@@ -60,4 +60,9 @@ defmodule CsvParser.Tests.Csv do
 		]
 	end
 
+	test "reduce" do
+		result = CsvParser.reduce!(@one, [], fn {:ok, row}, acc -> [row | acc] end, map: :lower)
+		assert result == [%{"age" => "32", "first name" => "Dulce", "id" => "1562"}]
+	end
+
 end

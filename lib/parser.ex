@@ -78,4 +78,11 @@ defmodule CsvParser do
 	"""
 	def reduce!(%Csv{} = csv, acc, fun), do: Csv.reduce(csv, acc, fun)
 	def reduce!(%Xlsx{} = xlsx, acc, fun), do: Xlsx.reduce(xlsx, acc, fun)
+
+	@doc """
+	Like calling new!/2 then reduce!/3
+	"""
+	def reduce!(file, acc, fun, opts \\ []) do
+		reduce!(new!(file, opts),acc, fun)
+	end
 end
