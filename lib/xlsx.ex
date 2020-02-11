@@ -81,7 +81,7 @@ defmodule CsvParser.Xlsx do
 
 	defp handle({:startElement, 'v', _}, s), do: state(s, value: true)
 	defp handle({:characters, value}, s) do
-		{row, count} = state(s, :row)
+		{row, _} = state(s, :row)
 		{type, index} = state(s, :col)
 		case row == nil || type == nil|| state(s, :value) == false do
 			true -> s  # a value that doesn't seem to belong to a row -> col -> value

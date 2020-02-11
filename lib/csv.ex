@@ -69,8 +69,8 @@ defmodule CsvParser.Csv do
 			value, {acc, _} -> {[value | acc], false}
 		end)
 		case res do
+			{_, true} -> :empty
 			{rows, false} -> {:ok, Enum.reverse(rows)}
-			{rows, true} -> :empty
 		end
 	end
 end
