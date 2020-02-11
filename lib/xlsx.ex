@@ -1,8 +1,8 @@
 defmodule CsvParser.Xlsx do
+	@moduledoc false
 	alias __MODULE__
 	require Record
 
-	@moduledoc false
 
 	defstruct [:sheet, :strings, :opts]
 
@@ -64,7 +64,7 @@ defmodule CsvParser.Xlsx do
 
 	def reduce(xlsx, acc, fun) do
 		strings = xlsx.strings
-		as_map? = xlsx.opts[:map] || false
+		map = xlsx.opts[:map] || false
 
 		{:ok, s, _} = :erlsom.parse_sax(xlsx.sheet, state(acc: acc), fn event, s ->
 			case simplify(event) do
@@ -86,24 +86,29 @@ defmodule CsvParser.Xlsx do
 				{:endElement, 'c'} -> state(s, type: nil, value: false)
 				{:endElement, 'row'} ->
 					row = Enum.reverse(state(s, :row))
-					case as_map? do
-						true ->
+					case map do
+						false ->
+							acc = fun.({:ok, row}, state(s, :acc))
+							state(s, acc: acc, row: nil, type: nil, value: false)
+						transform ->
 							case state(s, :headers) do
-								nil -> state(s, headers: row)
+								nil -> state(s, headers: build_headers(transform, row))
 								headers ->
 									row = Map.new(Enum.zip(headers, row))
 									acc = fun.({:ok, row}, state(s, :acc))
 									state(s, acc: acc, row: nil, type: nil, value: false)
 							end
-						false ->
-							acc = fun.({:ok, row}, state(s, :acc))
-							state(s, acc: acc, row: nil, type: nil, value: false)
 					end
 				_ -> s
 			end
 		end)
 		state(s, :acc)
 	end
+
+	defp build_headers(true, row), do: row
+	defp build_headers(:upper, row), do: Enum.map(row, &String.upcase/1)
+	defp build_headers(:lower, row), do: Enum.map(row, &String.downcase/1)
+	defp build_headers(fun, row) when is_function(fun), do: fun.(row)
 
 	defp simplify({:startElement, _url, name, _prefix, attributes}), do: {:startElement, name, attributes}
 	defp simplify({:endElement, _url, name, _prefix}), do: {:endElement, name}

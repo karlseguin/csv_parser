@@ -36,6 +36,19 @@ defmodule CsvParser.Tests.Xlsx do
 			{:ok, %{"Id" => "2587", "First Name" => "Philip", "Age" => "37", "Date" =>  "21/05/2015"}},
 			{:ok, %{"Id" => "3549", "First Name" => "Kathleen", "Age" => "25", "Date" =>  "15/10/2017"}},
 		]
+
+		assert CsvParser.read!(@common, sheet_index: 4, map: :lower) == [
+			{:ok, %{"id" => "1562", "first name" => "Dulce", "age" => "32"}},
+		]
+
+		assert CsvParser.read!(@common, sheet_index: 4, map: :upper) == [
+			{:ok, %{"ID" => "1562", "FIRST NAME" => "Dulce", "AGE" => "32"}},
+		]
+
+		fun = fn keys -> Enum.map(keys, fn key -> "#{key}!" end) end
+		assert CsvParser.read!(@common, sheet_index: 4, map: fun) == [
+			{:ok, %{"Id!" =>  "1562", "First Name!" => "Dulce", "Age!" => "32"}},
+		]
 	end
 
 	test "reads the specified sheet" do

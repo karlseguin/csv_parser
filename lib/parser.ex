@@ -6,10 +6,18 @@ defmodule CsvParser do
 	so that errors in your files can be handled explicitly.
 
 	opts:
-		type: :csv | :xlsx - defaults to nil, which will auto-detect
-		map: bool - whether you want rows as a list or map (where the keys are taken from the first row)
-		sheet_index: index (index) of the sheet to parse. Default to nil,
-		             which will take the first sheet, only applicable to xlsx
+		type: :csv | :xlsx
+			Defaults to nil, which will auto-detect
+
+		map: true | false | :lower | :upper | fun/1
+			Whether you want rows as a list or map. Defaults to false, which keeps rows
+			as lists. When :lower, keys will be lowercased. When :upper, keys will be
+			uppercased.  When true, keys will be kept as-is. When fun/1 is passed, the
+			row, as a list, will be given to the function a a list must be returned (the
+			function maps the input keys to output key).
+
+		sheet_index: int
+			Index of the sheet to parse. Default to 1 (only applicable to xlsx)
 	"""
 	def new(path, opts \\ []) do
 		opts = Keyword.put_new(opts, :validate_row_length, false)
