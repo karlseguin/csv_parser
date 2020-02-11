@@ -2,6 +2,7 @@ defmodule CsvParser.Tests.Csv do
 	use CsvParser.Tests.Base
 
 	@one "test/data/one.csv"
+	@gaps "test/data/gaps.csv"
 	@common "test/data/common.csv"
 	@jagged_rows "test/data/jagged_rows.csv"
 
@@ -63,6 +64,22 @@ defmodule CsvParser.Tests.Csv do
 	test "reduce" do
 		result = CsvParser.reduce!(@one, [], fn {:ok, row}, acc -> [row | acc] end, map: :lower)
 		assert result == [%{"age" => "32", "first name" => "Dulce", "id" => "1562"}]
+	end
+
+	test "handles gaps" do
+		assert CsvParser.read!(@gaps, sheet_index: 5) == [
+			{:ok, ["Id", "First Name", "Age", "Date"]},
+			{:ok, ["1562", "Dulce", nil, nil]},
+			{:ok, ["1582", "Mara", "25", "16/08/2016"]},
+			{:ok, ["2587", nil, "37", "21/05/2015"]},
+			{:ok, [nil, nil, nil, "15/10/2017"]},
+		]
+		assert CsvParser.read!(@gaps, sheet_index: 5, map: :lower) == [
+			{:ok, %{"id" => "1562", "first name" => "Dulce", "age" => nil, "date" => nil}},
+      {:ok, %{"age" => "25", "date" => "16/08/2016", "first name" => "Mara", "id" => "1582"}},
+      {:ok, %{"age" => "37", "date" => "21/05/2015", "first name" => nil, "id" => "2587"}},
+      {:ok, %{"age" => nil, "date" => "15/10/2017", "first name" => nil, "id" => nil}}
+    ]
 	end
 
 end

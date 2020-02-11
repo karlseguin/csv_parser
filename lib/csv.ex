@@ -31,13 +31,20 @@ defmodule CsvParser.Csv do
 		state(s, acc: acc)
 	end
 
-	defp handle_row(row, s) when state(s, :map) == false do
+	defp handle_row({:ok, row}, s) do
+		case fix_row(row) do
+			:empty -> s
+			ok -> handle_fixed_row(ok, s)
+		end
+	end
+
+	defp handle_fixed_row(row, s) when state(s, :map) == false do
 		acc = state(s, :acc)
 		acc = state(s, :fun).(row, acc)
 		state(s, acc: acc)
 	end
 
-	defp handle_row({:ok, row}, s) when state(s, :headers) == nil do
+	defp handle_fixed_row({:ok, row}, s) when state(s, :headers) == nil do
 		headers = case state(s, :map) do
 			true -> row
 			:upper -> Enum.map(row, &String.upcase/1)
@@ -47,12 +54,23 @@ defmodule CsvParser.Csv do
 		state(s, headers: headers)
 	end
 
-	defp handle_row({:ok, row}, s) do
+	defp handle_fixed_row({:ok, row}, s) do
 		headers = state(s, :headers)
 		row = Map.new(Enum.zip(headers, row))
 
 		acc = state(s, :acc)
 		acc = state(s, :fun).({:ok, row}, acc)
 		state(s, acc: acc)
+	end
+
+	defp fix_row(row) do
+		res = Enum.reduce(row, {[], true}, fn
+			"", {acc, empty?} -> {[nil | acc], empty?}
+			value, {acc, _} -> {[value | acc], false}
+		end)
+		case res do
+			{rows, false} -> {:ok, Enum.reverse(rows)}
+			{rows, true} -> :empty
+		end
 	end
 end

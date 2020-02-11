@@ -18,6 +18,9 @@ defmodule CsvParser do
 
 		sheet_index: int
 			Index of the sheet to parse. Default to 1 (only applicable to xlsx)
+
+		separator: ?C
+			Field separator. Defaults to ?, (only applicable to csv)
 	"""
 	def new(path, opts \\ []) do
 		opts = Keyword.put_new(opts, :validate_row_length, false)

@@ -46,3 +46,11 @@ Currently, with default options, you'll only ever get `{:ok, [...]}`, but its ex
 
 # Header / Maps
 You can pass `map: true` to get rows as maps rather than lists. The first row will be used as the keys.
+
+# Empty Cells / Rows
+
+Empty rows are removed
+
+Empty cells are nil
+
+If you're using map rows (by passing the `:map` option) and the first row is messy, the output will probably be bad.
