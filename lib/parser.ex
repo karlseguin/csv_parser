@@ -46,7 +46,7 @@ defmodule CsvParser do
 	def new!(path, opts \\ []) do
 		case new(path, opts) do
 			{:ok, obj} -> obj
-			err -> raise err
+			{:error, err} -> raise err
 		end
 	end
 
