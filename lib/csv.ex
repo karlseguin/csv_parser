@@ -6,7 +6,6 @@ defmodule CsvParser.Csv do
 
 	Record.defrecord(:state, acc: nil, fun: nil, row: nil, headers: nil, map: nil)
 
-
 	defstruct [:path, :opts]
 
 	def new(path, opts) do
@@ -14,14 +13,16 @@ defmodule CsvParser.Csv do
 		{:ok, %Csv{path: path, opts: opts}}
 	end
 
-	def reduce(csv, acc, fun) do
-		s = state(acc: acc, fun: fun, map: csv.opts[:map] || false)
-
-		s = csv.path
+	def reduce(%Csv{} = csv, acc, fun) do
+		csv.path
 		|> File.stream!()
 		|> CSV.decode(csv.opts)
-		|> Enum.reduce(s, &handle_row/2)
+		|> reduce(csv.opts, acc, fun)
+	end
 
+	def reduce(data, opts, acc, fun) do
+		s = state(acc: acc, fun: fun, map: opts[:map] || false)
+		s = Enum.reduce(data, s, &handle_row/2)
 		state(s, :acc)
 	end
 
@@ -37,6 +38,15 @@ defmodule CsvParser.Csv do
 			ok -> handle_fixed_row(ok, s)
 		end
 	end
+
+	# Used by memory parser
+	defp handle_row(row, s) do
+		case fix_row(row) do
+			:empty -> s
+			ok -> handle_fixed_row(ok, s)
+		end
+	end
+
 
 	defp handle_fixed_row(row, s) when state(s, :map) == false do
 		acc = state(s, :acc)

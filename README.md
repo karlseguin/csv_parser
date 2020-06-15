@@ -54,3 +54,18 @@ Empty rows are removed
 Empty cells are nil
 
 If you're using map rows (by passing the `:map` option) and the first row is messy, the output will probably be bad.
+
+# In-Memory 
+You might have cases where you want to pass some in-memory data through the same logic and would like to avoid having to write a dummy file to disk. In in-memory provider will pass the data to the CSV parser:
+
+```
+data = [
+  ["Id", "First Name", "Age", "Date"],
+  ["1562", "Dulce", "32", "15/10/2017"],
+]
+
+csv = CsvParser.memory(data)
+CsvParser.reduce(csv, [], fn row, acc ->
+  [row | acc]
+end)
+```

@@ -1,5 +1,5 @@
 defmodule CsvParser do
-	alias CsvParser.{Csv, Xlsx}
+	alias CsvParser.{Csv, Xlsx, Memory}
 
 	@doc """
 	Creates a new object to be passed into reduce!/3. new and reduce exist separately
@@ -38,6 +38,10 @@ defmodule CsvParser do
 				_ -> {:error, :unknown_type}
 			end
 		end
+	end
+
+	def memory(data, opts \\ []) do
+		Memory.new(data, opts)
 	end
 
 	@doc """
@@ -81,6 +85,7 @@ defmodule CsvParser do
 	"""
 	def reduce!(%Csv{} = csv, acc, fun), do: Csv.reduce(csv, acc, fun)
 	def reduce!(%Xlsx{} = xlsx, acc, fun), do: Xlsx.reduce(xlsx, acc, fun)
+	def reduce!(%Memory{} = csv, acc, fun), do: Memory.reduce(csv, acc, fun)
 
 	@doc """
 	Like calling new!/2 then reduce!/3
