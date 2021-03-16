@@ -5,8 +5,8 @@ defmodule CsvParser.MixProject do
 		[
 			app: :csv_parser,
 			deps: deps(),
-			version: "0.0.8",
-			elixir: "~> 1.10.0",
+			version: "0.0.9",
+			elixir: "~> 1.11",
 			elixirc_paths: paths(Mix.env),
 			build_embedded: Mix.env == :prod,
 			start_permanent: Mix.env() == :prod,
