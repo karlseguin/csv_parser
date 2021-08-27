@@ -54,7 +54,11 @@ defmodule CsvParser do
 		end
 	end
 
-	def lines(lines, opts \\ []), do: Csv.lines(lines, opts)
+	def lines(lines, opts \\ []) do
+		opts = Keyword.put_new(opts, :validate_row_length, false)
+		Csv.lines(lines, opts)
+	end
+
 	def lines!(lines, opts \\[]) do
 		case lines(lines, opts) do
 			{:ok, csv} -> csv
