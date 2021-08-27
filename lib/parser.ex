@@ -54,6 +54,14 @@ defmodule CsvParser do
 		end
 	end
 
+	def lines(lines, opts \\ []), do: Csv.lines(lines, opts)
+	def lines!(lines, opts \\[]) do
+		case lines(lines, opts) do
+			{:ok, csv} -> csv
+			{:error, err} -> raise err
+		end
+	end
+
 	@doc """
 	Reads the file returning a list of list. See new/2 for valid opts
 	"""

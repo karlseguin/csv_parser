@@ -82,4 +82,11 @@ defmodule CsvParser.Tests.Csv do
 		]
 	end
 
+	test "csv with lines" do
+		assert ["1,2,3", "4,5,6"]
+		|> CsvParser.lines!()
+		|> CsvParser.reduce!([], fn line, acc -> [elem(line, 1) | acc] end)
+		|> Enum.reverse() == [["1", "2", "3"], ["4", "5", "6"]]
+	end
+
 end

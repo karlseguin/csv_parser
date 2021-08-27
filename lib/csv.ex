@@ -6,16 +6,28 @@ defmodule CsvParser.Csv do
 
 	Record.defrecord(:state, acc: nil, fun: nil, row: nil, headers: nil, map: nil)
 
-	defstruct [:path, :opts]
+	defstruct [:path, :lines, :opts]
 
 	def new(path, opts) do
 		opts = Keyword.put_new(opts, :strip_fields, true)
 		{:ok, %Csv{path: path, opts: opts}}
 	end
 
-	def reduce(%Csv{} = csv, acc, fun) do
+	def lines(lines, opts) do
+		opts = Keyword.put_new(opts, :strip_fields, true)
+		{:ok, %Csv{lines: lines, opts: opts}}
+	end
+
+	def reduce(%Csv{lines: nil} = csv, acc, fun) do
 		csv.path
 		|> File.stream!()
+		|> CSV.decode(csv.opts)
+		|> reduce(csv.opts, acc, fun)
+	end
+
+	def reduce(%Csv{} = csv, acc, fun) do
+		csv.lines
+		|> Stream.map(&(&1))
 		|> CSV.decode(csv.opts)
 		|> reduce(csv.opts, acc, fun)
 	end
