@@ -5,11 +5,11 @@ defmodule CsvParser.Xlsx do
 
 	defstruct [:sheet, :strings, :opts]
 
-  Record.defrecord(:state, acc: nil, row: {nil, 0}, col: nil, value: false, headers: nil, strings: nil, map: nil, fun: nil, col_last: 0, col_count: nil)
+	Record.defrecord(:state, acc: nil, row: {nil, 0}, col: nil, value: false, headers: nil, strings: nil, map: nil, fun: nil, col_last: 0, col_count: nil)
 
 	def new(path, opts) do
 		with {:ok, xlsx} <- :zip.unzip(String.to_charlist(path), [:memory]),
-		     {:ok, sheet} <- extract_sheet(xlsx, opts)
+				 {:ok, sheet} <- extract_sheet(xlsx, opts)
 		do
 			shared_string_data = Enum.find_value(xlsx, fn
 				{'xl/sharedStrings.xml', data} -> data
@@ -72,8 +72,8 @@ defmodule CsvParser.Xlsx do
 	defp handle({:startElement, 'row', _}, s), do: state(s, row: {[], 0})
 	defp handle({:startElement, 'c', attr}, s) do
 		col = Enum.reduce(attr, {nil, nil}, fn
-			{:attribute, 't', [], [], type},  {_type, index} -> {type, index}
-			{:attribute, 'r', [], [], index},  {type, _index} -> {type, extract_index(index)}
+			{:attribute, 't', [], [], type}, {_type, index} -> {type, index}
+			{:attribute, 'r', [], [], index}, {type, _index} -> {type, extract_index(index)}
 			_, acc -> acc
 		end)
 		state(s, col: col, value: false)
@@ -84,7 +84,7 @@ defmodule CsvParser.Xlsx do
 		{row, _} = state(s, :row)
 		{type, index} = state(s, :col)
 		case row == nil || type == nil|| state(s, :value) == false do
-			true -> s  # a value that doesn't seem to belong to a row -> col -> value
+			true -> s # a value that doesn't seem to belong to a row -> col -> value
 			false ->
 				value = case type do
 					's' -> elem(state(s, :strings), elem(:string.to_integer(value), 0))
@@ -111,7 +111,7 @@ defmodule CsvParser.Xlsx do
 			col_count ->
 				row = case count < col_count do
 					true -> Enum.reduce(count .. col_count - 1, row, fn _, row -> [nil | row] end)
-					false -> row  # we have a full column
+					false -> row # we have a full column
 				end
 				{s, row}
 		end

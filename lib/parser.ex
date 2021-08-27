@@ -12,7 +12,7 @@ defmodule CsvParser do
 		map: true | false | :lower | :upper | fun/1
 			Whether you want rows as a list or map. Defaults to false, which keeps rows
 			as lists. When :lower, keys will be lowercased. When :upper, keys will be
-			uppercased.  When true, keys will be kept as-is. When fun/1 is passed, the
+			uppercased. When true, keys will be kept as-is. When fun/1 is passed, the
 			row, as a list, will be given to the function a a list must be returned (the
 			function maps the input keys to output key).
 

@@ -1,8 +1,8 @@
 defmodule CsvParser.Tests.Base do
-  use ExUnit.CaseTemplate
+	use ExUnit.CaseTemplate
 
-  using do
-    quote do
-    end
-  end
+	using do
+		quote do
+		end
+	end
 end

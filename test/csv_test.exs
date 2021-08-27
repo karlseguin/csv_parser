@@ -23,9 +23,9 @@ defmodule CsvParser.Tests.Csv do
 	test "reads a file with rows as maps" do
 		assert CsvParser.read!(@common, map: true) == [
 			{:ok, %{"Id" => "1562", "First Name" => "Dulce", "Age" => "32", "Date" => "15/10/2017"}},
-			{:ok, %{"Id" => "1582", "First Name" => "Mara", "Age" => "25", "Date" =>  "16/08/2016"}},
-			{:ok, %{"Id" => "2587", "First Name" => "Philip", "Age" => "37", "Date" =>  "21/05/2015"}},
-			{:ok, %{"Id" => "3549", "First Name" => "Kathleen", "Age" => "25", "Date" =>  "15/10/2017"}},
+			{:ok, %{"Id" => "1582", "First Name" => "Mara", "Age" => "25", "Date" => "16/08/2016"}},
+			{:ok, %{"Id" => "2587", "First Name" => "Philip", "Age" => "37", "Date" => "21/05/2015"}},
+			{:ok, %{"Id" => "3549", "First Name" => "Kathleen", "Age" => "25", "Date" => "15/10/2017"}},
 		]
 
 		assert CsvParser.read!(@one, map: :lower) == [
@@ -38,7 +38,7 @@ defmodule CsvParser.Tests.Csv do
 
 		fun = fn keys -> Enum.map(keys, fn key -> "#{key}!" end) end
 		assert CsvParser.read!(@one, map: fun) == [
-			{:ok, %{"Id!" =>  "1562", "First Name!" => "Dulce", "Age!" => "32"}},
+			{:ok, %{"Id!" => "1562", "First Name!" => "Dulce", "Age!" => "32"}},
 		]
 	end
 
@@ -76,10 +76,10 @@ defmodule CsvParser.Tests.Csv do
 		]
 		assert CsvParser.read!(@gaps, sheet_index: 5, map: :lower) == [
 			{:ok, %{"id" => "1562", "first name" => "Dulce", "age" => nil, "date" => nil}},
-      {:ok, %{"age" => "25", "date" => "16/08/2016", "first name" => "Mara", "id" => "1582"}},
-      {:ok, %{"age" => "37", "date" => "21/05/2015", "first name" => nil, "id" => "2587"}},
-      {:ok, %{"age" => nil, "date" => "15/10/2017", "first name" => nil, "id" => nil}}
-    ]
+			{:ok, %{"age" => "25", "date" => "16/08/2016", "first name" => "Mara", "id" => "1582"}},
+			{:ok, %{"age" => "37", "date" => "21/05/2015", "first name" => nil, "id" => "2587"}},
+			{:ok, %{"age" => nil, "date" => "15/10/2017", "first name" => nil, "id" => nil}}
+		]
 	end
 
 end
