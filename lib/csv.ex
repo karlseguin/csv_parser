@@ -4,7 +4,7 @@ defmodule CsvParser.Csv do
 	alias __MODULE__
 	require Record
 
-	Record.defrecord(:state, acc: nil, fun: nil, row: nil, headers: nil, map: nil)
+	Record.defrecord(:state, acc: nil, fun: nil, row: nil, headers: nil, map: nil, header_lookup: nil)
 
 	defstruct [:path, :lines, :opts]
 
@@ -35,7 +35,12 @@ defmodule CsvParser.Csv do
 	def reduce(data, opts, acc, fun) do
 		s = state(acc: acc, fun: fun, map: opts[:map] || false)
 		s = Enum.reduce(data, s, &handle_row/2)
-		state(s, :acc)
+
+		acc = state(s, :acc)
+		cond  do
+			opts[:header_lookup] === true -> {state(s, :header_lookup), acc}
+			true -> acc
+		end
 	end
 
 	defp handle_row({:error, _} = err, s) do
@@ -59,7 +64,6 @@ defmodule CsvParser.Csv do
 		end
 	end
 
-
 	defp handle_fixed_row(row, s) when state(s, :map) == false do
 		acc = state(s, :acc)
 		acc = state(s, :fun).(row, acc)
@@ -73,7 +77,12 @@ defmodule CsvParser.Csv do
 			:lower -> Enum.map(row, &String.downcase/1)
 			fun when is_function(fun) -> fun.(row)
 		end
-		state(s, headers: headers)
+
+		header_lookup = headers
+		|> Enum.zip(row)
+		|> Map.new()
+
+		state(s, headers: headers, header_lookup: header_lookup)
 	end
 
 	defp handle_fixed_row({:ok, row}, s) do

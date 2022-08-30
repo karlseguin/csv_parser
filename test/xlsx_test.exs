@@ -51,6 +51,23 @@ defmodule CsvParser.Tests.Xlsx do
 		]
 	end
 
+	test "reduce with header lookup" do
+		fun = fn keys -> Enum.map(keys, fn key -> "#{key}!" end) end
+		csv = CsvParser.new!(@common, sheet_index: 4, map: fun, header_lookup: true)
+
+		{lookup, res} = CsvParser.reduce!(csv, [], fn row, acc -> [row | acc] end)
+
+		assert lookup == %{
+			"Id!" => "Id",
+			"First Name!" => "First Name",
+			"Age!" => "Age",
+		}
+
+		assert res == [
+			{:ok, %{"Id!" => "1562", "First Name!" => "Dulce", "Age!" => "32"}}
+		]
+	end
+
 	test "reads the specified sheet" do
 		assert CsvParser.read!(@common, sheet_index: 2) == [{:ok, ["test"]}]
 	end

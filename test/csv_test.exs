@@ -42,6 +42,23 @@ defmodule CsvParser.Tests.Csv do
 		]
 	end
 
+	test "reduce with header lookup" do
+		fun = fn keys -> Enum.map(keys, fn key -> "#{key}!" end) end
+		csv = CsvParser.new!(@one, map: fun, header_lookup: true)
+
+		{lookup, res} = CsvParser.reduce!(csv, [], fn row, acc -> [row | acc] end)
+
+		assert lookup == %{
+			"Id!" => "Id",
+			"First Name!" => "First Name",
+			"Age!" => "Age",
+		}
+
+		assert res == [
+			{:ok, %{"Id!" => "1562", "First Name!" => "Dulce", "Age!" => "32"}}
+		]
+	end
+
 	test "error on unknown file" do
 		assert CsvParser.read("404", type: :csv) == {:error, :enoent}
 		assert_raise RuntimeError, "enoent", fn -> CsvParser.read!("404", type: :csv) end

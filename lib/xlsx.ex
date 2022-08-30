@@ -5,7 +5,7 @@ defmodule CsvParser.Xlsx do
 
 	defstruct [:sheet, :strings, :opts]
 
-	Record.defrecord(:state, acc: nil, row: {nil, 0}, col: nil, value: false, headers: nil, strings: nil, map: nil, fun: nil, col_last: 0, col_count: nil)
+	Record.defrecord(:state, acc: nil, row: {nil, 0}, col: nil, value: false, headers: nil, strings: nil, map: nil, fun: nil, col_last: 0, col_count: nil, header_lookup: nil)
 
 	def new(path, opts) do
 		with {:ok, xlsx} <- :zip.unzip(String.to_charlist(path), [:memory]),
@@ -66,7 +66,13 @@ defmodule CsvParser.Xlsx do
 		{:ok, s, _} = :erlsom.parse_sax(xlsx.sheet, s, fn event, s ->
 			handle(simplify(event), s)
 		end)
-		state(s, :acc)
+
+		acc = state(s, :acc)
+		opts = xlsx.opts
+		cond  do
+			opts[:header_lookup] === true -> {state(s, :header_lookup), acc}
+			true -> acc
+		end
 	end
 
 	defp handle({:startElement, 'row', _}, s), do: state(s, row: {[], 0})
@@ -123,7 +129,14 @@ defmodule CsvParser.Xlsx do
 				state(s, acc: acc, row: {nil, 0}, col: {nil, nil}, col_last: 0, value: false)
 			transform ->
 				case state(s, :headers) do
-					nil -> state(s, headers: build_headers(transform, row), col: {nil, nil}, col_last: 0)
+					nil ->
+						headers = build_headers(transform, row)
+						header_lookup = headers
+
+						|> Enum.zip(row)
+						|> Map.new()
+
+						state(s, headers: headers, header_lookup: header_lookup, col: {nil, nil}, col_last: 0)
 					headers ->
 						row = Map.new(Enum.zip(headers, row))
 						acc = state(s, :fun).({:ok, row}, state(s, :acc))
